@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pytorchradiomics"
+version = "0.0.4"
+authors = [
+  { name="Wingkou", email="wingkou@outlook.com" },
+]
+description = "PyTorch implementation of PyRadiomics Extractor"
+readme = "README.md"
+requires-python = ">=3.10"
+keywords = [ "radiomics", "cancerimaging", "medicalresearch", "computationalimaging" ]
+classifiers = [
+    "Programming Language :: Python :: 3.10",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Topic :: Scientific/Engineering :: Bio-Informatics"
+]
+
+[project.urls]
+Homepage = "https://github.com/lyhyl/pytorchradiomics#readme"
+Issues = "https://github.com/lyhyl/pytorchradiomics/issues"
+Github = "https://github.com/lyhyl/pytorchradiomics"
