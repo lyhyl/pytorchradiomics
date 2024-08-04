@@ -2,8 +2,10 @@ import numpy
 import torch
 from radiomics import base, cMatrices
 
+from torchradiomics.TorchRadiomicsBase import TorchRadiomicsBase
 
-class TorchRadiomicsNGTDM(base.RadiomicsFeaturesBase):
+
+class TorchRadiomicsNGTDM(TorchRadiomicsBase):
   """
   RadiomicsNGTDM PyTorch implement
   """
@@ -16,17 +18,6 @@ class TorchRadiomicsNGTDM(base.RadiomicsFeaturesBase):
 
     self.P_ngtdm = None
     self.imageArray = self._applyBinning(self.imageArray)
-  
-  def tensor(self, array: numpy.ndarray):
-    return torch.tensor(array, dtype=self.dtype, device=self.device)
-  
-  def delete(self, arr: torch.Tensor, ind: int, dim: int) -> torch.Tensor:
-    """
-    https://gist.github.com/velikodniy/6efef837e67aee2e7152eb5900eb0258
-    """
-    skip = [i for i in range(arr.size(dim)) if i != ind]
-    indices = [slice(None) if i != dim else skip for i in range(arr.ndim)]
-    return arr.__getitem__(indices)
 
   def _initCalculation(self, voxelCoordinates=None):
     self.P_ngtdm = self._calculateMatrix(voxelCoordinates)

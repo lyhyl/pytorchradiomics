@@ -1,8 +1,8 @@
 import logging
-import warnings
-from typing import Type
 import os
-os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
+import warnings
+from functools import partial
+from typing import Type
 
 import numpy as np
 import radiomics
@@ -10,14 +10,17 @@ import radiomics.base
 import SimpleITK as sitk
 import torch
 from pyinstrument import Profiler
-from radiomics import firstorder, glcm, glrlm, ngtdm
+from radiomics import firstorder, glcm, gldm, glrlm, glszm, ngtdm
 from radiomics.featureextractor import RadiomicsFeatureExtractor
 from radiomics.imageoperations import checkMask, cropToTumorMask
 from tqdm import tqdm
 
 from torchradiomics import (TorchRadiomicsFirstOrder, TorchRadiomicsGLCM,
-                            TorchRadiomicsGLRLM, TorchRadiomicsNGTDM,
+                            TorchRadiomicsGLDM, TorchRadiomicsGLRLM,
+                            TorchRadiomicsGLSZM, TorchRadiomicsNGTDM,
                             inject_torch_radiomics, restore_radiomics)
+
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 
 def get_default_settings():
@@ -43,23 +46,23 @@ def test(img, mask, kernel,
          typeB: Type[radiomics.base.RadiomicsFeaturesBase]):
     rf_ext = RadiomicsFeatureExtractor(
         voxelBased=True, padDistance=kernel,
-        kernelRadius=kernel, maskedKernel=False, voxelBatch=512,
+        kernelRadius=kernel, maskedKernel=False, voxelBatch=256,
         **get_default_settings())
     img_norm, mask_norm = rf_ext.loadImage(img, mask, None, **rf_ext.settings)
 
     a_ext = typeA(
         img_norm, mask_norm,
         voxelBased=True, padDistance=kernel,
-        kernelRadius=kernel, maskedKernel=False, voxelBatch=1024,
+        kernelRadius=kernel, maskedKernel=False, voxelBatch=256,
         **get_default_settings())
 
     b_ext = typeB(
         img_norm, mask_norm,
         voxelBased=True, padDistance=kernel,
-        kernelRadius=kernel, maskedKernel=False, voxelBatch=512,
+        kernelRadius=kernel, maskedKernel=False, voxelBatch=256,
         dtype=torch.float64,
         **get_default_settings())
-        
+
     profiler1 = Profiler()
     profiler1.start()
     a = a_ext.execute()
@@ -76,24 +79,28 @@ def test(img, mask, kernel,
 
 
 if __name__ == "__main__":
-    warnings.filterwarnings("ignore", message=".*OMP_NUM_THREADS=\d.*") 
-    warnings.filterwarnings("ignore", message=".*invalid value encountered in divide.*") 
+    warnings.filterwarnings("ignore", message=".*OMP_NUM_THREADS=\d.*")
+    warnings.filterwarnings("ignore", message=".*invalid value encountered in divide.*")
 
     radiomics.setVerbosity(logging.INFO)  # Verbosity must be at least INFO to enable progress bar
-    radiomics.progressReporter = tqdm
-    
-    kernel = 1
+    radiomics.progressReporter = partial(tqdm, leave=False)
+
+    kernel = 3
     size = 16
-    img = sitk.GetImageFromArray(np.random.randn(size, size, size))
+    # img = sitk.GetImageFromArray(np.random.randn(size, size, size))
+    sign = np.sign(np.random.randn(size, size, size))
+    img = sitk.GetImageFromArray(sign * (np.random.rand(size, size, size) + np.where(sign > 0, 2, 1)))
     mask = sitk.GetImageFromArray(np.ones((size, size, size)))
 
-    test(img, mask, kernel, glcm.RadiomicsGLCM, TorchRadiomicsGLCM)
     test(img, mask, kernel, firstorder.RadiomicsFirstOrder, TorchRadiomicsFirstOrder)
+    test(img, mask, kernel, glcm.RadiomicsGLCM, TorchRadiomicsGLCM)
+    test(img, mask, kernel, gldm.RadiomicsGLDM, TorchRadiomicsGLDM)
     test(img, mask, kernel, glrlm.RadiomicsGLRLM, TorchRadiomicsGLRLM)
+    test(img, mask, kernel, glszm.RadiomicsGLSZM, TorchRadiomicsGLSZM)
     test(img, mask, kernel, ngtdm.RadiomicsNGTDM, TorchRadiomicsNGTDM)
 
     # inject_torch_radiomics()
-        
+
     # ext = RadiomicsFeatureExtractor(
     #     voxelBased=True, padDistance=kernel,
     #     kernelRadius=kernel, maskedKernel=False, voxelBatch=512,
@@ -105,4 +112,3 @@ if __name__ == "__main__":
     # profiler.open_in_browser()
 
     # restore_radiomics()
-    

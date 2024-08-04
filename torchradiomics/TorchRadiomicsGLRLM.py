@@ -2,8 +2,10 @@ import numpy
 import torch
 from radiomics import base, cMatrices
 
+from torchradiomics.TorchRadiomicsBase import TorchRadiomicsBase
 
-class TorchRadiomicsGLRLM(base.RadiomicsFeaturesBase):
+
+class TorchRadiomicsGLRLM(TorchRadiomicsBase):
   """
   RadiomicsGLRLM PyTorch implement
   """
@@ -18,17 +20,6 @@ class TorchRadiomicsGLRLM(base.RadiomicsFeaturesBase):
 
     self.P_glrlm = None
     self.imageArray = self._applyBinning(self.imageArray)
-  
-  def tensor(self, array: numpy.ndarray):
-    return torch.tensor(array, dtype=self.dtype, device=self.device)
-  
-  def delete(self, arr: torch.Tensor, ind: int, dim: int) -> torch.Tensor:
-    """
-    https://gist.github.com/velikodniy/6efef837e67aee2e7152eb5900eb0258
-    """
-    skip = [i for i in range(arr.size(dim)) if i != ind]
-    indices = [slice(None) if i != dim else skip for i in range(arr.ndim)]
-    return arr.__getitem__(indices)
 
   def _initCalculation(self, voxelCoordinates=None):
     self.P_glrlm = self._calculateMatrix(voxelCoordinates)
@@ -301,7 +292,7 @@ class TorchRadiomicsGLRLM(base.RadiomicsFeaturesBase):
     RE measures the uncertainty/randomness in the distribution of run lengths and gray levels. A higher value indicates
     more heterogeneity in the texture patterns.
     """
-    eps = torch.finfo(torch.float64).eps
+    eps = torch.finfo(self.dtype).eps
     Nr = self.coefficients['Nr']
     p_glrlm = self.P_glrlm / Nr[:, None, None, :]  # divide by Nr to get the normalized matrix
 

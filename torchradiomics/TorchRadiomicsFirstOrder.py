@@ -2,8 +2,10 @@ import numpy
 import torch
 from radiomics import base, cMatrices, deprecated
 
+from torchradiomics.TorchRadiomicsBase import TorchRadiomicsBase
 
-class TorchRadiomicsFirstOrder(base.RadiomicsFeaturesBase):
+
+class TorchRadiomicsFirstOrder(TorchRadiomicsBase):
   """
   RadiomicsFirstOrder PyTorch implement
   """
@@ -17,9 +19,6 @@ class TorchRadiomicsFirstOrder(base.RadiomicsFeaturesBase):
     self.pixelSpacing = inputImage.GetSpacing()
     self.voxelArrayShift = kwargs.get('voxelArrayShift', 0)
     self.discretizedImageArray = self._applyBinning(self.imageArray.copy())
-  
-  def tensor(self, array: numpy.ndarray):
-    return torch.tensor(array, dtype=self.dtype, device=self.device)
 
   def _initVoxelBasedCalculation(self):
     super(TorchRadiomicsFirstOrder, self)._initVoxelBasedCalculation()
