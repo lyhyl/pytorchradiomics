@@ -66,3 +66,12 @@ ext.execute(img, mask, voxelBased=True)
 
 restore_radiomics() # restore
 ```
+
+# Citation
+```
+@article{lianglocalized,
+  title={Localized Intra-and Inter-Tumoral Heterogeneity for Predicting Treatment Response to Neoadjuvant Chemotherapy in Breast Cancer},
+  author={Liang, Yinhao and Tang, Wenjie and Kong, Qingcong and Wang, Ting and Zhang, Jianjun and Ng, Wing WY and Chen, Siyi and Li, Ying and Guo, Yuan},
+  journal={IEEE journal of biomedical and health informatics}
+}
+```
